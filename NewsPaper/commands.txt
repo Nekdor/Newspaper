@@ -1,0 +1,39 @@
+from news.models import *
+from django.contrib.auth.models import User
+User.objects.create_user('user1')
+User.objects.create_user('user2')
+Author.objects.create(user=User.objects.all()[0])
+Author.objects.create(user=User.objects.all()[1])
+Category.objects.create(name='politics')
+Category.objects.create(name='economics')
+Category.objects.create(name='sports')
+Category.objects.create(name='science')
+Post.objects.create(author=Author.objects.get(pk=1), type='n', header='news1')
+Post.objects.create(author=Author.objects.get(pk=2), type='n', header='news2')
+Post.objects.create(author=Author.objects.get(pk=1), type='a', header='article1')
+PostCategory.objects.create(post=Post.objects.get(header='news1'), category=Category.objects.get(name='politics'))
+PostCategory.objects.create(post=Post.objects.get(header='news2'), category=Category.objects.get(name='science'))
+PostCategory.objects.create(post=Post.objects.get(header='article1'), category=Category.objects.get(name='sports'))
+PostCategory.objects.create(post=Post.objects.get(header='article1'), category=Category.objects.get(name='economics'))
+Comment.objects.create(post=Post.objects.get(header='news1'), author=User.objects.all()[0], text='comment1')
+Comment.objects.create(post=Post.objects.get(header='news1'), author=User.objects.all()[1], text='comment2')
+Comment.objects.create(post=Post.objects.get(header='news2'), author=User.objects.all()[0], text='comment3')
+Comment.objects.create(post=Post.objects.get(header='article1'), author=User.objects.all()[1], text='comment4')
+from random import randint
+for i in range(3):
+    for j in range(10):
+        a = randint(0, 1)
+        Post.objects.all()[i].like() if a else Post.objects.all()[i].dislike()
+for i in range(4):
+    for j in range(10):
+        a = randint(0, 1)
+        Comment.objects.all()[i].like() if a else Comment.objects.all()[i].dislike()
+Author.objects.all()[0].update_rating()
+Author.objects.all()[1].update_rating()
+Author.objects.all().order_by('rating').values('user__username', 'rating').first()
+Post.objects.all().order_by('-_rating').values('post_time', 'author__user__username', '_rating', 'header').first()
+Post.objects.all().order_by('-_rating').first().preview
+Comment.objects.filter(post=Post.objects.all().order_by('-_rating').first()).values('post_time', 'author__username', '_rating', 'text')
+
+
+        
