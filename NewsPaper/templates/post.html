@@ -1,0 +1,16 @@
+<!--  наследуемся от шаблона default.html, который мы создавали для flatpages -->
+{% extends 'flatpages/default.html' %}
+
+{% load custom_filters %}
+
+<!-- Название у нас будет Post -->
+{% block title %}
+Post
+{% endblock title %}
+
+<!-- В контенте на странице мы выводим саму публикацию, идентификатор которой был передан в url -->
+{% block content %}
+<h1>{{ post.header|censor }}</h1>
+<h3>{{ post.post_time }}</h3>
+<h3>{{ post.text|censor }}</h3>
+{% endblock content %}
