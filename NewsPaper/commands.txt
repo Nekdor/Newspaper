@@ -35,5 +35,21 @@ Post.objects.all().order_by('-_rating').values('post_time', 'author__user__usern
 Post.objects.all().order_by('-_rating').first().preview
 Comment.objects.filter(post=Post.objects.all().order_by('-_rating').first()).values('post_time', 'author__username', '_rating', 'text')
 
+from news.models import *
+from random import randint
+for i in range(20):
+    text_new = ''
+    text_art = ''
+    for j in range(8):
+        text_new += f'Here is the text for News {i+3} of my project.'
+        text_art += f'Here is the text for Article {i+2} of my project.'
+    Post.objects.create(author=Author.objects.get(pk=randint(1, 2)), type='n', header=f'news{i+3}', text=text_new)
+    Post.objects.create(author=Author.objects.get(pk=randint(1, 2)), type='a', header=f'article{i+2}', text=text_art)
+    for cat_name in ('politics', 'sports', 'economics', 'science'):
+        if randint(0, 1):
+            PostCategory.objects.create(post=Post.objects.get(header=f'news{i+3}'), category=Category.objects.get(name=cat_name))
+        if randint(0, 1):
+            PostCategory.objects.create(post=Post.objects.get(header=f'article{i+2}'), category=Category.objects.get(name=cat_name))
+
 
         

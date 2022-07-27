@@ -11,6 +11,8 @@ Post
 <!-- В контенте на странице мы выводим саму публикацию, идентификатор которой был передан в url -->
 {% block content %}
 <h1>{{ post.header|censor }}</h1>
+<h3>{{ post.type }}</h3>
 <h3>{{ post.post_time }}</h3>
 <h3>{{ post.text|censor }}</h3>
+
 {% endblock content %}
