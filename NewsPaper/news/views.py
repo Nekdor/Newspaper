@@ -1,11 +1,16 @@
 from django.urls import reverse_lazy
 # Импортируем класс, который говорит нам о том,
 # что в этом представлении мы будем выводить список объектов из БД
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.views.generic.edit import ModelFormMixin
 from .models import Post
 from .forms import PostForm, NewsUpdateForm, ArticleUpdateForm, NewsDeleteForm, ArticleDeleteForm
 from .filters import PostFilter
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import redirect
+from django.contrib.auth.models import Group
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 
 
 class PostsList(ListView):
@@ -57,13 +62,15 @@ class PostDetail(DetailView):
 
 # Добавляем представление для создания новостей.
 # В используемой модели по умолчанию тип публикации - новость.
-class NewsCreate(CreateView):
+class NewsCreate(PermissionRequiredMixin, CreateView):
     # Указываем нашу разработанную форму
     form_class = PostForm
     # модель публкации
     model = Post
     # и новый шаблон, в котором используется форма.
     template_name = 'post_edit.html'
+    # Требование авторизации в качестве автора
+    permission_required = 'news.add_post'
 
 
 # Класс создания статей
@@ -77,13 +84,15 @@ class ArticleCreate(NewsCreate):
 
 
 # Добавляем представление для редактирования новостей.
-class NewsUpdate(UpdateView):
+class NewsUpdate(PermissionRequiredMixin, LoginRequiredMixin, UpdateView):
     # Указываем нашу разработанную форму
     form_class = NewsUpdateForm
     # модель публкации
     model = Post
     # и новый шаблон, в котором используется форма.
     template_name = 'post_edit.html'
+    # Требование авторизации в качестве автора
+    permission_required = 'news.change_post'
 
 
 # Класс редактирования статей
@@ -118,3 +127,22 @@ class NewsDelete(DeleteView):
 # но с другой формой
 class ArticleDelete(NewsDelete):
     form_class = ArticleDeleteForm
+
+
+class IndexView(LoginRequiredMixin, TemplateView):
+    template_name = 'accounts/index.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_not_author'] = not self.request.user.groups.filter(name='authors').exists()
+        return context
+
+
+@login_required
+def upgrade_me(request):
+    user = request.user
+    author_group = Group.objects.get(name='authors')
+    if not request.user.groups.filter(name='authors').exists():
+        author_group.user_set.add(user)
+        print(user, author_group)
+    return redirect('/accounts/')
