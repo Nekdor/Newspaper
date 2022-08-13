@@ -25,6 +25,7 @@ class Author(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    subscriber = models.ManyToManyField(User, through='CategorySubscriber')
 
     def __str__(self):
         return self.name.title()
@@ -36,7 +37,7 @@ class Post(models.Model):
     article = 'a'
     TYPES = [(news, 'Новость'), (article, 'Статья')]
 
-    author = models.ForeignKey(Author, on_delete=models.CASCADE)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, blank=True)
     type = models.CharField(max_length=1, choices=TYPES, default=news)
     post_time = models.DateTimeField(auto_now_add=True)
     category = models.ManyToManyField(Category, through='PostCategory')
@@ -89,3 +90,12 @@ class Comment(models.Model):
     def dislike(self):
         self._rating -= 1
         self.save()
+
+
+class CategorySubscriber(models.Model):
+
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    subscriber = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def get_absolute_url(self):
+        return reverse('subscribe')

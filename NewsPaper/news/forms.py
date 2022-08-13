@@ -2,17 +2,23 @@ from django import forms
 from django.core.exceptions import ValidationError
 from allauth.account.forms import SignupForm
 from django.contrib.auth.models import Group
+from .models import Post, CategorySubscriber
+from datetime import datetime, time
 
-from .models import Post
 
 
 # Класс формы для создания публикации (как новости, так и статьи)
 class PostForm(forms.ModelForm):
     text = forms.CharField(min_length=20)
 
+    def __init__(self, *args, **kwargs):
+        """ Добавляем автора публикации в конструктор класса"""
+        self.author = kwargs.pop('author')
+        super().__init__(*args, **kwargs)
+
     class Meta:
         model = Post
-        fields = ['author', 'header', 'category', 'text']
+        fields = ['header', 'category', 'text']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -20,7 +26,10 @@ class PostForm(forms.ModelForm):
         header = cleaned_data.get('header')
         if text == header:
             raise ValidationError('Текст публикации не должен совпадать с ее названием!')
-
+        midnight = datetime.combine(datetime.today(), time.min)
+        posts_today = Post.objects.filter(author=self.author, post_time__gt=midnight)
+        if posts_today.count() >= 3:
+            raise ValidationError('Вы больше не можете создавать публикации сегодня!')
         return cleaned_data
 
 
@@ -76,3 +85,26 @@ class BasicSignupForm(SignupForm):
         common_group.user_set.add(user)
         return user
 
+
+#  Класс формы для подписки на категорию
+class SubscribeForm(forms.ModelForm):
+    class Meta:
+        model = CategorySubscriber
+        fields = ['category']
+
+    def __init__(self, *args, **kwargs):
+        """ Добавляем запрос в конструктор класса"""
+        self.request = kwargs.pop('request')
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        """Метод верификации формы дополняется проверкой отсутствия подписки"""
+        cleaned_data = super().clean()
+        # Выбранная категория
+        cat = cleaned_data.get('category')
+        # Текущий пользователь
+        sub = self.request.user
+        # Проверка, нет ли уже подписки на выбранную категорию у текущего пользователя
+        if self.Meta.model.objects.filter(category=cat, subscriber=sub).exists():
+            raise ValidationError('Вы уже подписаны на данную категорию!')
+        return cleaned_data
