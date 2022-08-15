@@ -7,7 +7,7 @@
 <body>
 <p> Здравствуй, {{ username }}! За прошедшую неделю категория {{ category_name }} пополнилась новыми публикациями! </p>
     {% for post in new_post_set %}
-        <a href = http://127.0.0.1:8000/news/{{ post.pk }}> {{ post.header }} </a>
+        <a href = http://127.0.0.1:8000/news/{{ post.pk }}> {{ post.header }} </a> <br>
     {% endfor %}
 </body>
 </html>
