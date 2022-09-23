@@ -3,9 +3,12 @@
 {% block content %}
 <h2> Подписаться на категорию: </h2>
 <hr>
+{% load cache %}
+{% cache 300 category_selection %}
 <form action="" method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <input type="submit" value="Save" />
 </form>
+{% endcache %}
 {% endblock content %}

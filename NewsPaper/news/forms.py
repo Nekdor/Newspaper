@@ -6,7 +6,6 @@ from .models import Post, CategorySubscriber
 from datetime import datetime, time
 
 
-
 # Класс формы для создания публикации (как новости, так и статьи)
 class PostForm(forms.ModelForm):
     text = forms.CharField(min_length=20)

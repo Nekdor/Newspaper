@@ -31,6 +31,7 @@ Posts
                 <td>{{ post.header|censor }}</td>
                 <td>{{ post.post_time|date:'M d Y' }}</td>
                 <td>{{ post.text|censor|truncatechars:40 }}</td>
+                <td> <a href={{ post.pk }}/> {{ post.pk }} </a> </td>
             </tr>
             {% endfor %}
 

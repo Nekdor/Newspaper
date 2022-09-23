@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.core.cache import cache # импортируем наш кэш
 
 
 class Author(models.Model):
@@ -48,6 +49,10 @@ class Post(models.Model):
     def get_absolute_url(self):
         return reverse('post_detail', args=[str(self.id)])
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)  # сначала вызываем метод родителя, чтобы объект сохранился
+        cache.delete(f'post-{self.pk}')  # затем удаляем его из кэша, чтобы сбросить его
+
     @property
     def rating(self):
         return self._rating
@@ -58,6 +63,10 @@ class Post(models.Model):
 
     def dislike(self):
         self._rating -= 1
+        self.save()
+
+    def nullify(self):
+        self._rating = 0
         self.save()
 
     @property

@@ -14,5 +14,6 @@ Post
 <h3>{{ post.type }}</h3>
 <h3>{{ post.post_time }}</h3>
 <h3>{{ post.text|censor }}</h3>
+<a href = {{ post.get_absolute_url }}delete/> Удалить публикацию </a> <br>
 
 {% endblock content %}

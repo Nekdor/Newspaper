@@ -11,6 +11,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.cache import cache # импортируем наш кэш
 
 
 class PostsList(ListView):
@@ -58,6 +59,16 @@ class PostDetail(DetailView):
     template_name = 'post.html'
     # Название объекта, в котором будет выбранная пользователем публикация
     context_object_name = 'post'
+
+    def get_object(self, *args, **kwargs):  # переопределяем метод получения объекта, как ни странно
+        # метод забирает значение по ключу, если его нет, то забирает None.
+        obj = cache.get(f'post-{self.kwargs["pk"]}', None)
+
+        # если объекта нет в кэше, то получаем его и записываем в кэш
+        if not obj:
+            obj = super().get_object(queryset=self.queryset)
+            cache.set(f'post-{self.kwargs["pk"]}', obj)
+        return obj
 
 
 # Добавляем представление для создания новостей.
@@ -107,6 +118,14 @@ class NewsUpdate(PermissionRequiredMixin, LoginRequiredMixin, UpdateView):
     template_name = 'post_edit.html'
     # Требование авторизации в качестве автора
     permission_required = 'news.change_post'
+
+    # Передаем юзера в форму
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        author = Author.objects.get(user=self.request.user)
+        # Передаем запрос в форму
+        kwargs.update({"author": author})
+        return kwargs
 
 
 # Класс редактирования статей
